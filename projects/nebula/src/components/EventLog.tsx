@@ -13,22 +13,21 @@ export default function EventLog({ events }: Props) {
         backdropFilter: "blur(12px)",
       }}
     >
-      <h3
-        style={{
-          fontSize: 14,
-          fontWeight: 600,
-          color: "var(--gray)",
-          marginBottom: 16,
-          textTransform: "uppercase",
-          letterSpacing: "0.05em",
-        }}
-      >
-        Live Event Stream
-      </h3>
-      <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
+        <h3 style={{
+          fontSize: 14, fontWeight: 600, color: "var(--gray)",
+          textTransform: "uppercase" as const, letterSpacing: "0.05em",
+        }}>
+          Realtime Activity Log
+        </h3>
+        <span style={{ fontSize: 12, color: "var(--gray)", fontFamily: "monospace" }}>
+          {events.length > 0 ? `${events.length} records` : ""}
+        </span>
+      </div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 4, maxHeight: 280, overflow: "auto" }}>
         {events.length === 0 && (
           <span style={{ color: "var(--gray)", fontSize: 13 }}>
-            Waiting for data...
+            Collecting data...
           </span>
         )}
         {events.map((ev, i) => (
@@ -38,26 +37,18 @@ export default function EventLog({ events }: Props) {
               display: "flex",
               alignItems: "center",
               gap: 10,
-              padding: "6px 10px",
+              padding: "7px 10px",
               borderRadius: 8,
-              background:
-                i === 0 ? "rgba(0, 240, 255, 0.04)" : "transparent",
-              fontSize: 13,
-              color: i === 0 ? "#d0d0f0" : "var(--gray)",
-              fontFamily: "monospace",
-              animation:
-                i === 0 ? "fade-slide 0.4s ease-out" : "none",
+              background: i < 3 ? "rgba(0, 240, 255, 0.04)" : "transparent",
+              fontSize: 12,
+              color: i < 3 ? "#d0d0f0" : "var(--gray)",
+              fontFamily: "JetBrains Mono, monospace",
             }}
           >
-            <span
-              style={{
-                width: 6,
-                height: 6,
-                borderRadius: "50%",
-                background: i === 0 ? "var(--cyan)" : "transparent",
-                flexShrink: 0,
-              }}
-            ></span>
+            <span style={{
+              width: 5, height: 5, borderRadius: "50%",
+              background: i < 3 ? "var(--cyan)" : "transparent", flexShrink: 0,
+            }}></span>
             <span>{ev}</span>
           </div>
         ))}

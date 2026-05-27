@@ -7,12 +7,12 @@ import {
   Tooltip,
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import type { ChartPoint } from "../useRealtimeData";
+import type { ChartSeries } from "../useRealtimeData";
 
 ChartJS.register(CategoryScale, LinearScale, BarElement, Title, Tooltip);
 
 interface Props {
-  data: ChartPoint[];
+  data: ChartSeries[];
   color: string;
 }
 

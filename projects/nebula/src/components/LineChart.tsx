@@ -9,7 +9,7 @@ import {
   Filler,
 } from "chart.js";
 import { Line } from "react-chartjs-2";
-import type { ChartPoint } from "../useRealtimeData";
+import type { ChartSeries } from "../useRealtimeData";
 
 ChartJS.register(
   CategoryScale,
@@ -22,7 +22,7 @@ ChartJS.register(
 );
 
 interface Props {
-  data: ChartPoint[];
+  data: ChartSeries[];
   color: string;
 }
 

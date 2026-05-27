@@ -1,5 +1,15 @@
-import { useState, useEffect, useRef } from "react";
-import { randomBetween, randomFloat, generateTimestamps } from "./utils";
+import { useState, useEffect, useRef, useCallback } from "react";
+import type { StoredPoint, Alert, AlertConfig, DateRange } from "./utils";
+import {
+  saveData,
+  pruneOldData,
+  generateTrendPoint,
+  saveAlerts,
+  loadAlertConfigs,
+  saveAlertConfigs,
+  filterByRange,
+} from "./utils";
+import { generateScenarioData, type ScenarioId } from "./scenarios";
 
 export interface Metric {
   label: string;
@@ -8,121 +18,144 @@ export interface Metric {
   icon: string;
 }
 
-export interface ChartPoint {
+export interface ChartSeries {
   label: string;
   value: number;
 }
 
-const INITIAL_METRICS: Metric[] = [
-  { label: "Active Users", value: "0", change: 0, icon: "👤" },
-  { label: "Page Views", value: "0", change: 0, icon: "👁" },
-  { label: "Conversion Rate", value: "0%", change: 0, icon: "📈" },
-  { label: "Avg. Session", value: "0s", change: 0, icon: "⏱" },
-];
+const SCENARIO_KEY = "nebula_scenario";
+
+function loadScenario(): ScenarioId {
+  try { return (localStorage.getItem(SCENARIO_KEY) as ScenarioId) || "live"; }
+  catch { return "live"; }
+}
+
+function saveScenario(id: ScenarioId) {
+  try { localStorage.setItem(SCENARIO_KEY, id); } catch { /* */ }
+}
 
 export function useRealtimeData() {
-  const [metrics, setMetrics] = useState<Metric[]>(INITIAL_METRICS);
-  const [revenueData, setRevenueData] = useState<ChartPoint[]>([]);
-  const [trafficData, setTrafficData] = useState<ChartPoint[]>([]);
-  const [events, setEvents] = useState<string[]>([]);
-  const counter = useRef(0);
+  const [scenario, setScenarioState] = useState<ScenarioId>(loadScenario);
+
+  const setScenario = useCallback((id: ScenarioId) => {
+    setScenarioState(id);
+    saveScenario(id);
+  }, []);
+
+  const [allPoints, setAllPoints] = useState<StoredPoint[]>(() => {
+    const id = loadScenario();
+    try { return generateScenarioData(id); } catch { return []; }
+  });
+
+  const [metrics, setMetrics] = useState<Metric[]>([
+    { label: "Active Users", value: "0", change: 0, icon: "👤" },
+    { label: "Page Views", value: "0", change: 0, icon: "👁" },
+    { label: "Conversion Rate", value: "0%", change: 0, icon: "📈" },
+    { label: "Avg. Session", value: "0s", change: 0, icon: "⏱" },
+  ]);
+
+  const [alerts, setAlerts] = useState<Alert[]>(() => {
+    try { const r = localStorage.getItem("nebula_alerts"); return r ? JSON.parse(r) : []; }
+    catch { return []; }
+  });
+
+  const [alertConfigs, setAlertConfigs] = useState<AlertConfig[]>(() => {
+    try { return loadAlertConfigs(); } catch { return []; }
+  });
+
+  const [range, setRange] = useState<DateRange>("7d");
+
+  const allPointsRef = useRef(allPoints);
+  allPointsRef.current = allPoints;
+  const alertConfigsRef = useRef(alertConfigs);
+  alertConfigsRef.current = alertConfigs;
+
+  useEffect(() => { try { saveData(allPoints); } catch {} }, [allPoints]);
+  useEffect(() => { try { saveAlerts(alerts); } catch {} }, [alerts]);
+  useEffect(() => { try { saveAlertConfigs(alertConfigs); } catch {} }, [alertConfigs]);
+
+  // Reseed when scenario changes
+  useEffect(() => {
+    const data = generateScenarioData(scenario);
+    setAllPoints(data);
+  }, [scenario]);
 
   useEffect(() => {
-    const labels = generateTimestamps(20);
-    setRevenueData(labels.map((l) => ({ label: l, value: 0 })));
-    setTrafficData(labels.map((l) => ({ label: l, value: 0 })));
-
     const interval = setInterval(() => {
-      counter.current++;
+      try {
+        const currentAllPoints = allPointsRef.current;
+        const currentConfigs = alertConfigsRef.current;
+        const prevPoint = currentAllPoints.length > 0 ? currentAllPoints[currentAllPoints.length - 1] : null;
+        const newPoint = generateTrendPoint(prevPoint);
 
-      const activeUsers = randomBetween(1200, 4800);
-      const prevUsers = randomBetween(1200, 4800);
-      const pageViews = randomBetween(8000, 25000);
-      const prevViews = randomBetween(8000, 25000);
-      const convRate = randomFloat(2.1, 8.9);
-      const prevConv = randomFloat(2.1, 8.9);
-      const avgSession = randomBetween(45, 320);
-      const prevSession = randomBetween(45, 320);
+        setAllPoints((prev) => {
+          try { return pruneOldData([...prev, newPoint], 8 * 24 * 60 * 60 * 1000); }
+          catch { return prev; }
+        });
 
-      setMetrics([
-        {
-          label: "Active Users",
-          value: activeUsers.toLocaleString(),
-          change: parseFloat(
-            (((activeUsers - prevUsers) / prevUsers) * 100).toFixed(1)
-          ),
-          icon: "👤",
-        },
-        {
-          label: "Page Views",
-          value: pageViews.toLocaleString(),
-          change: parseFloat(
-            (((pageViews - prevViews) / prevViews) * 100).toFixed(1)
-          ),
-          icon: "👁",
-        },
-        {
-          label: "Conversion Rate",
-          value: `${convRate}%`,
-          change: parseFloat(((convRate - prevConv) / prevConv * 100).toFixed(1)),
-          icon: "📈",
-        },
-        {
-          label: "Avg. Session",
-          value: `${avgSession}s`,
-          change: parseFloat(
-            (((avgSession - prevSession) / prevSession) * 100).toFixed(1)
-          ),
-          icon: "⏱",
-        },
-      ]);
+        const calcChange = (curr: number, prev: number) =>
+          prev === 0 ? 0 : parseFloat((((curr - prev) / prev) * 100).toFixed(1));
 
-      setRevenueData((prev) => {
-        const next = [...prev, { label: "", value: randomFloat(12000, 45000) }];
-        if (next.length > 20) next.shift();
-        return next.map((p, i) => ({
-          ...p,
-          label: new Date(
-            Date.now() - (next.length - 1 - i) * 2000
-          ).toLocaleTimeString(),
-        }));
-      });
+        const np = newPoint;
+        const pp = prevPoint || np;
 
-      setTrafficData((prev) => {
-        const next = [...prev, { label: "", value: randomBetween(300, 1800) }];
-        if (next.length > 20) next.shift();
-        return next.map((p, i) => ({
-          ...p,
-          label: new Date(
-            Date.now() - (next.length - 1 - i) * 2000
-          ).toLocaleTimeString(),
-        }));
-      });
+        setMetrics([
+          { label: "Active Users", value: np.users.toLocaleString(), change: calcChange(np.users, pp.users), icon: "👤" },
+          { label: "Page Views", value: np.pageViews.toLocaleString(), change: calcChange(np.pageViews, pp.pageViews), icon: "👁" },
+          { label: "Conversion Rate", value: `${np.conversionRate}%`, change: calcChange(np.conversionRate * 100, pp.conversionRate * 100), icon: "📈" },
+          { label: "Avg. Session", value: `${np.avgSession}s`, change: calcChange(np.avgSession, pp.avgSession), icon: "⏱" },
+        ]);
 
-      const eventTypes = [
-        "New user signup",
-        "Order completed",
-        "Page viewed: /pricing",
-        "API call: /v1/analytics",
-        "Session expired",
-        "File uploaded",
-        "Search query executed",
-        "Payment processed",
-      ];
-      setEvents((prev) => {
-        const next = [
-          `${new Date().toLocaleTimeString()} — ${
-            eventTypes[Math.floor(Math.random() * eventTypes.length)]
-          }`,
-          ...prev,
-        ];
-        if (next.length > 20) next.pop();
-        return next;
-      });
+        const metricValues: Record<string, number> = {
+          users: np.users, pageViews: np.pageViews, revenue: np.revenue,
+          traffic: np.traffic, conversionRate: np.conversionRate, avgSession: np.avgSession,
+        };
+
+        currentConfigs.forEach((cfg) => {
+          if (!cfg.enabled) return;
+          const val = metricValues[cfg.metric] ?? 0;
+          const triggered = cfg.operator === ">" ? val > cfg.threshold : val < cfg.threshold;
+          if (!triggered) return;
+          setAlerts((prev) => {
+            if (prev.find((a) => a.configId === cfg.id && !a.acknowledged)) return prev;
+            const next = [{ id: `a${Date.now()}`, configId: cfg.id, message: `${cfg.label} ${cfg.operator === ">" ? "above" : "below"} threshold: ${val} ${cfg.operator} ${cfg.threshold}`, timestamp: Date.now(), acknowledged: false }, ...prev];
+            return next.slice(0, 50);
+          });
+        });
+      } catch { /* silence */ }
     }, 2000);
 
     return () => clearInterval(interval);
   }, []);
 
-  return { metrics, revenueData, trafficData, events };
+  const acknowledgeAlert = useCallback((id: string) => setAlerts((p) => p.map((a) => a.id === id ? { ...a, acknowledged: true } : a)), []);
+  const clearAlerts = useCallback(() => setAlerts([]), []);
+  const updateAlertConfig = useCallback((id: string, enabled: boolean) => setAlertConfigs((p) => p.map((c) => c.id === id ? { ...c, enabled } : c)), []);
+
+  const filteredPoints = filterByRange(allPoints, range);
+
+  const fmt = (ts: number) => {
+    try { return new Date(ts).toLocaleTimeString(undefined, { hour: "2-digit", minute: "2-digit" }); }
+    catch { return String(ts); }
+  };
+
+  const seriesFrom = (fn: (p: StoredPoint) => number): ChartSeries[] =>
+    filteredPoints.map((p) => ({ label: fmt(p.ts), value: fn(p) }));
+
+  const revenueData = seriesFrom((p) => p.revenue);
+  const trafficData = seriesFrom((p) => p.traffic);
+  const usersData = seriesFrom((p) => p.users);
+  const conversionData = seriesFrom((p) => p.conversionRate);
+
+  const events: string[] = allPoints.slice(-30).reverse().map((p) => {
+    try { return `${new Date(p.ts).toLocaleTimeString()} — Users: ${p.users} | Pages: ${p.pageViews} | Revenue: $${p.revenue.toFixed(0)}`; }
+    catch { return `Data point at ${p.ts}`; }
+  });
+
+  return {
+    scenario, setScenario, metrics, revenueData, trafficData, usersData, conversionData,
+    events, range, setRange, alerts: alerts.filter((a) => !a.acknowledged),
+    acknowledgedAlerts: alerts.filter((a) => a.acknowledged),
+    acknowledgeAlert, clearAlerts, alertConfigs, updateAlertConfig, allPoints, filteredPoints,
+  };
 }
