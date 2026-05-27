@@ -1,0 +1,45 @@
+---
+---
+
+<nav class="navbar fixed top-0 left-0 right-0 z-50 px-6 py-4 transition-all duration-300">
+  <div class="max-w-6xl mx-auto flex items-center justify-between">
+    <a href="#" class="font-display text-xl font-bold tracking-wider">
+      <span class="gradient-text">NEXUS</span><span class="text-white">INFINITY</span>
+    </a>
+    <div class="hidden md:flex items-center gap-8">
+      <a href="#projects" class="text-gray-400 hover:text-nexus-cyan transition-colors duration-300 text-sm tracking-widest uppercase">Projects</a>
+      <a href="#skills" class="text-gray-400 hover:text-nexus-cyan transition-colors duration-300 text-sm tracking-widest uppercase">Skills</a>
+      <a href="#contact" class="text-gray-400 hover:text-nexus-cyan transition-colors duration-300 text-sm tracking-widest uppercase">Contact</a>
+      <a href="https://github.com/AsadMehmood" target="_blank" rel="noopener noreferrer" class="glass px-5 py-2 rounded-full text-sm font-medium text-nexus-cyan hover:shadow-[0_0_20px_rgba(0,240,255,0.3)] transition-all duration-300">
+        GitHub →
+      </a>
+    </div>
+  </div>
+</nav>
+
+<script>
+  const navbar = document.querySelector(".navbar");
+  let lastScroll = 0;
+
+  window.addEventListener("scroll", () => {
+    const currentScroll = window.scrollY;
+    if (currentScroll > 50) {
+      navbar.classList.add("glass", "shadow-lg", "shadow-nexus-cyan/5");
+      navbar.style.padding = "10px 24px";
+    } else {
+      navbar.classList.remove("glass", "shadow-lg", "shadow-nexus-cyan/5");
+      navbar.style.padding = "16px 24px";
+    }
+    lastScroll = currentScroll;
+  });
+
+  document.querySelectorAll('.navbar a[href^="#"]').forEach((anchor) => {
+    anchor.addEventListener("click", function (e) {
+      e.preventDefault();
+      const target = document.querySelector(this.getAttribute("href"));
+      if (target) {
+        target.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+    });
+  });
+</script>

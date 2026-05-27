@@ -1,0 +1,20 @@
+{
+  "name": "nexusinfinity",
+  "type": "module",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview"
+  },
+  "dependencies": {
+    "astro": "^5.0.0",
+    "@astrojs/tailwind": "^6.0.0",
+    "@astrojs/netlify": "^6.0.0",
+    "aos": "^2.3.4"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.0",
+    "@types/aos": "^3.0.7"
+  }
+}

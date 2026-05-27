@@ -1,0 +1,33 @@
+---
+import "../styles/global.css";
+import AOS from "aos";
+import "aos/dist/aos.css";
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="NexusInfinity - A portfolio of limitless digital creations. Explore futuristic projects built with cutting-edge technology." />
+    <meta name="keywords" content="portfolio, developer, futuristic, nexusinfinity, web development" />
+    <meta name="author" content="NexusInfinity" />
+    <meta property="og:title" content="NexusInfinity" />
+    <meta property="og:description" content="Limitless digital creations from the future." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>NexusInfinity — Limitless Creations</title>
+  </head>
+  <body class="grid-bg">
+    <slot />
+    <script>
+      import AOS from "aos";
+      AOS.init({
+        duration: 800,
+        once: true,
+        offset: 100,
+        easing: "ease-out-cubic",
+      });
+    </script>
+  </body>
+</html>

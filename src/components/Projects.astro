@@ -1,0 +1,70 @@
+---
+import ProjectCard from "./ProjectCard.astro";
+
+const projects = [
+  {
+    title: "Project Nebula",
+    description: "A real-time analytics dashboard with live data streaming, interactive charts, and AI-powered insights for modern businesses.",
+    tags: ["React", "Node.js", "WebSockets", "AI"],
+    url: "https://project-nebula.netlify.app",
+    gradient: "linear-gradient(135deg, #00f0ff, #7b2ff7)",
+  },
+  {
+    title: "Quantum Forge",
+    description: "AI-powered development toolkit that generates production-ready code from natural language descriptions and automates workflows.",
+    tags: ["Python", "TensorFlow", "FastAPI", "Next.js"],
+    url: "https://quantum-forge.netlify.app",
+    gradient: "linear-gradient(135deg, #ff00e5, #7b2ff7)",
+  },
+  {
+    title: "CyberVault",
+    description: "Secure, encrypted file storage platform with zero-knowledge architecture, real-time sync, and collaborative workspaces.",
+    tags: ["Go", "PostgreSQL", "React", "WebCrypto"],
+    url: "https://cybervault.netlify.app",
+    gradient: "linear-gradient(135deg, #7b2ff7, #00f0ff)",
+  },
+  {
+    title: "Aether Terminal",
+    description: "Web-based terminal emulator with a custom shell, plugin system, and beautiful ASCII visualizations for developers.",
+    tags: ["TypeScript", "Xterm.js", "WebAssembly", "Rust"],
+    url: "https://aether-terminal.netlify.app",
+    gradient: "linear-gradient(135deg, #00f0ff, #ff00e5)",
+  },
+  {
+    title: "SynthOS",
+    description: "Synthethic operating system simulation — a fully interactive desktop environment running entirely in the browser.",
+    tags: ["React", "Zustand", "Canvas API", "CSS"],
+    url: "https://synth-os.netlify.app",
+    gradient: "linear-gradient(135deg, #ff00e5, #00f0ff)",
+  },
+  {
+    title: "Nova API",
+    description: "High-performance GraphQL API gateway with built-in caching, rate limiting, and real-time subscription support.",
+    tags: ["GraphQL", "Redis", "Kubernetes", "Node.js"],
+    url: "https://nova-api.netlify.app",
+    gradient: "linear-gradient(135deg, #7b2ff7, #ff00e5)",
+  },
+];
+---
+
+<section id="projects" class="relative py-24 md:py-32 px-6">
+  <div class="max-w-6xl mx-auto">
+    <div data-aos="fade-up" class="text-center mb-16">
+      <span class="text-nexus-cyan text-sm tracking-widest font-medium mb-4 block">✦ PROJECTS</span>
+      <h2 class="text-4xl md:text-5xl font-display font-bold text-white mb-4">
+        Featured <span class="gradient-text">Creations</span>
+      </h2>
+      <p class="text-nexus-gray max-w-xl mx-auto">
+        Each project is crafted with precision and purpose. Click to explore live demos.
+      </p>
+    </div>
+
+    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {projects.map((project, index) => (
+        <div data-aos="fade-up" data-aos-delay={index * 100}>
+          <ProjectCard {...project} />
+        </div>
+      ))}
+    </div>
+  </div>
+</section>
