@@ -1,0 +1,29 @@
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #0c0c14;
+  --bg-card: rgba(8, 8, 16, 0.9);
+  --cyan: #00f0ff;
+  --green: #00ff88;
+  --gray: #8888aa;
+  --text: #c0c0d0;
+  --border: rgba(255, 255, 255, 0.06);
+}
+
+body {
+  font-family: "JetBrains Mono", monospace;
+  background: var(--bg);
+  color: var(--text);
+  height: 100vh;
+  overflow: hidden;
+}
+
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--cyan); border-radius: 2px; }
